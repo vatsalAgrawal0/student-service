@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-student-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-student-service
+  template:
+    metadata:
+      labels:
+        app: postgres-student-service
+    spec:
+      containers:
+        - name: postgres-student-service
+          image: postgres:17-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: myuser
+            - name: POSTGRES_PASSWORD
+              value: mypassword
+            - name: POSTGRES_DB
+              value: mydb
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-student-service-storage
+      volumes:
+        - name: postgres-student-service-storage
+          persistentVolumeClaim:
+            claimName: postgres-student-service-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-student-service
+spec:
+  type: NodePort
+  selector:
+    app: postgres-student-service
+  ports:
+    - port: 5432
+      targetPort: 5432
+      nodePort: 30001
